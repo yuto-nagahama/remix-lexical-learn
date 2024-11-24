@@ -27,17 +27,23 @@ import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListNode, ListItemNode } from "@lexical/list";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
-
 import ExampleTheme from "./ExampleTheme";
 import ToolbarPlugin from "./plugins/ToolbarPlugin.client";
 import { parseAllowedColor, parseAllowedFontSize } from "./styleConfig";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { $convertFromMarkdownString } from "@lexical/markdown";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
+import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import { CUSTOM_TRANSFORMERS } from "./transformer/transformer";
 import CustomAutoLinkPlugin from "./plugins/CustomAutoLinkPlugin.client";
 import { ImageNode } from "./nodes/ImageNode";
+
+import "./editor.css";
+import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
+import DraggableBlockPlugin from "./plugins/DraggableBlockPlugin";
+import { useState } from "react";
 
 const placeholder = "Enter some rich text...";
 
@@ -139,7 +145,45 @@ const constructImportMap = (): DOMConversionMap => {
 
 const editorConfig = {
   editorState: () => {
-    const markdown = `- test
+    const markdown = `
+# heading1
+## heading2
+### heading3
+
+paragraph1
+paragraph2
+
+**bold**
+*italic*
+~~strikethrough~~
+
+- test1
+  - test1-2
+- test2
+  - test2-1
+    - test2-1-1
+    - test2-1-2
+- test3
+
+1. list1
+   1. list1-1
+1. list2
+   1. list2-1
+      1. list2-1-1
+1. list3
+
+\`\`\`
+console.log(1)
+\`\`\`
+
+\`console.log(1)\`
+
+[link](https://www.example.com)
+
+https://www.example.com
+
+---
+
 |1|2|
 |-|-|
 |2|3|
@@ -174,28 +218,45 @@ const editorConfig = {
 };
 
 export default function LexicalEditorClient() {
+  const [floatingAnchorElem, setFloatingAnchorElem] =
+    useState<HTMLDivElement | null>(null);
+
+  const onRef = (_floatingAnchorElem: HTMLDivElement) => {
+    if (_floatingAnchorElem !== null) {
+      setFloatingAnchorElem(_floatingAnchorElem);
+    }
+  };
+
   return (
     <LexicalComposer initialConfig={editorConfig}>
-      <div className="editor-container">
+      <div className="custom-reset">
         <ToolbarPlugin />
         <TablePlugin />
-        <div className="editor-inner">
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable
-                className="editor-input prose [&_tr]:border-b [&_tr]:border-black"
-                aria-placeholder={placeholder}
-                placeholder={
-                  <div className="editor-placeholder">{placeholder}</div>
-                }
-              />
-            }
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <HistoryPlugin />
-          <MarkdownShortcutPlugin />
-          <CustomAutoLinkPlugin />
-        </div>
+        <RichTextPlugin
+          contentEditable={
+            <div className="editor-scroller">
+              <div className="editor" ref={onRef}>
+                <ContentEditable
+                  className="border border-base-300 outline-none [&_tr]:border-b [&_tr]:border-black p-8"
+                  aria-placeholder={placeholder}
+                  placeholder={
+                    <div className="editor-placeholder">{placeholder}</div>
+                  }
+                />
+              </div>
+            </div>
+          }
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <HistoryPlugin />
+        <MarkdownShortcutPlugin />
+        <CustomAutoLinkPlugin />
+        <TabIndentationPlugin />
+        <HorizontalRulePlugin />
+        <ListPlugin />
+        {floatingAnchorElem && (
+          <DraggableBlockPlugin anchorElem={floatingAnchorElem} />
+        )}
       </div>
     </LexicalComposer>
   );

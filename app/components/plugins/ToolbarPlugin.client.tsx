@@ -6,7 +6,6 @@
  *
  */
 import {
-  $isListItemNode,
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
   insertList,
@@ -25,11 +24,9 @@ import {
   COMMAND_PRIORITY_LOW,
   FORMAT_ELEMENT_COMMAND,
   FORMAT_TEXT_COMMAND,
-  KEY_ENTER_COMMAND,
-  RangeSelection,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MARKDOWN_EXPORT_COMMAND } from "../command/markdown";
 import {
   $convertFromMarkdownString,
@@ -37,34 +34,29 @@ import {
   TRANSFORMERS,
 } from "@lexical/markdown";
 import {
+  ArrowDownTrayIcon,
+  Bars3BottomLeftIcon,
+  Bars3BottomRightIcon,
+  Bars3CenterLeftIcon,
+  BoldIcon,
+  ItalicIcon,
   ListBulletIcon,
   NumberedListIcon,
-  PhotoIcon,
+  StrikethroughIcon,
   TableCellsIcon,
+  UnderlineIcon,
 } from "@heroicons/react/24/outline";
 import { $createTableNodeWithDimensions } from "@lexical/table";
 import { INSERT_NEW_TABLE_COMMAND } from "../command/table";
 import { CUSTOM_TRANSFORMERS } from "../transformer/transformer";
 import { $createImageNode } from "../nodes/ImageNode";
-import ImageInput from "../ui/ImageInput";
 import { INSERT_IMAGE_COMMAND, InsertImagePayload } from "../command/image";
-
-const LowPriority = 1;
-
-function Divider() {
-  return <div className="divider" />;
-}
-
-const shouldPreventDefaultEnter = (selection: RangeSelection) => {
-  const anchorNode = selection.anchor.getNode();
-  if (!$isListItemNode(anchorNode)) return false;
-  // リストアイテムノードで、テキストが0以上で最後の子ではない場合にtrueを返す
-  return anchorNode.getTextContentSize() === 0 && anchorNode.isLastChild();
-};
+import ImageInput from "../ui/ImageInput";
+import MarkdownIcon from "../icons/MarkdownIcon";
+import ToolButton from "../ToolButton";
 
 export default function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
-  const toolbarRef = useRef(null);
   const [isMarkdownEditor, setIsMarkdownEditor] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
@@ -91,14 +83,14 @@ export default function ToolbarPlugin() {
           root.getTextContent(),
           CUSTOM_TRANSFORMERS,
           undefined, // node
-          false
+          true
         );
         setIsMarkdownEditor(false);
       } else {
         const markdown = $convertToMarkdownString(
           CUSTOM_TRANSFORMERS,
           undefined, //node
-          false
+          true
         );
 
         const paragraph = $createParagraphNode();
@@ -141,27 +133,6 @@ export default function ToolbarPlugin() {
           $updateToolbar();
           return false;
         },
-        LowPriority
-      ),
-      editor.registerCommand(
-        KEY_ENTER_COMMAND,
-        (payload) => {
-          if (!payload) return true;
-
-          const event: KeyboardEvent = payload;
-          const selection = $getSelection();
-
-          if (!selection) return false;
-          if (!$isRangeSelection(selection)) return false;
-
-          if (shouldPreventDefaultEnter(selection)) {
-            event.preventDefault();
-            editor.update(() => {
-              selection.insertNodes([$createParagraphNode()]);
-            });
-          }
-          return true;
-        },
         COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand(
@@ -169,7 +140,13 @@ export default function ToolbarPlugin() {
         () => {
           editor.read(() => {
             const markdown = $convertToMarkdownString(TRANSFORMERS);
-            console.log(markdown);
+            const blob = new Blob([markdown], { type: "text/plain" });
+            const link = document.createElement("a");
+
+            link.href = URL.createObjectURL(blob);
+            link.download = `${new Date().getTime()}.md`;
+            link.click();
+            link.remove();
           });
           return true;
         },
@@ -207,7 +184,6 @@ export default function ToolbarPlugin() {
       editor.registerCommand<InsertImagePayload>(
         INSERT_IMAGE_COMMAND,
         (payload) => {
-          console.log(123);
           const imageNode = $createImageNode(payload);
           $insertNodes([imageNode]);
           if ($isRootOrShadowRoot(imageNode.getParentOrThrow())) {
@@ -222,112 +198,70 @@ export default function ToolbarPlugin() {
   }, [editor, $updateToolbar]);
 
   return (
-    <div className="toolbar" ref={toolbarRef}>
-      <button
+    <div className="flex items-center bg-base-200">
+      <ToolButton
+        disabled={!isMarkdownEditor}
         onClick={() => {
           editor.dispatchCommand(MARKDOWN_EXPORT_COMMAND, undefined);
         }}
-        className="btn btn-sm"
-        disabled={!isMarkdownEditor}
       >
-        Export
-      </button>
-      <button onClick={handleMarkdownToggle} className="btn btn-sm">
-        {!isMarkdownEditor ? "Markdown" : "WYSIWYG"}
-      </button>
-      <button
+        <ArrowDownTrayIcon className="size-5" />
+      </ToolButton>
+      <ToolButton active={isMarkdownEditor} onClick={handleMarkdownToggle}>
+        <MarkdownIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
+        active={isBold}
+        aria-label="Format Bold"
         onClick={() => {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
         }}
-        className={"toolbar-item spaced " + (isBold ? "active" : "")}
-        aria-label="Format Bold"
       >
-        <i className="format bold" />
-      </button>
-      <button
+        <BoldIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
+        active={isItalic}
+        aria-label="Format Italics"
         onClick={() => {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
         }}
-        className={"toolbar-item spaced " + (isItalic ? "active" : "")}
-        aria-label="Format Italics"
       >
-        <i className="format italic" />
-      </button>
-      <button
+        <ItalicIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
+        active={isUnderline}
+        aria-label="Format Underline"
         onClick={() => {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
         }}
-        className={"toolbar-item spaced " + (isUnderline ? "active" : "")}
-        aria-label="Format Underline"
       >
-        <i className="format underline" />
-      </button>
-      <button
+        <UnderlineIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
+        active={isStrikethrough}
+        aria-label="Format StrikeThrough"
         onClick={() => {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough");
         }}
-        className={"toolbar-item spaced " + (isStrikethrough ? "active" : "")}
-        aria-label="Format Strikethrough"
       >
-        <i className="format strikethrough" />
-      </button>
-      <Divider />
-      <button
-        onClick={() => {
-          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "left");
-        }}
-        className="toolbar-item spaced"
-        aria-label="Left Align"
-      >
-        <i className="format left-align" />
-      </button>
-      <button
-        onClick={() => {
-          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "center");
-        }}
-        className="toolbar-item spaced"
-        aria-label="Center Align"
-      >
-        <i className="format center-align" />
-      </button>
-      <button
-        onClick={() => {
-          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "right");
-        }}
-        className="toolbar-item spaced"
-        aria-label="Right Align"
-      >
-        <i className="format right-align" />
-      </button>
-      <button
-        onClick={() => {
-          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "justify");
-        }}
-        className="toolbar-item"
-        aria-label="Justify Align"
-      >
-        <i className="format justify-align" />
-      </button>
-      <button
+        <StrikethroughIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
         onClick={() => {
           editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
         }}
-        className="toolbar-item"
-        aria-label="Justify Align"
       >
-        <ListBulletIcon className="size-6" />
-      </button>
-      <button
+        <ListBulletIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
         onClick={() => {
           editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
         }}
-        className="toolbar-item"
-        aria-label="Justify Align"
       >
-        <NumberedListIcon className="size-6" />
-      </button>
+        <NumberedListIcon className="size-5" />
+      </ToolButton>
       <ImageInput onChange={loadImage} />
-      <button
+      <ToolButton
         onClick={() => {
           editor.dispatchCommand(INSERT_NEW_TABLE_COMMAND, {
             rows: "3",
@@ -335,11 +269,33 @@ export default function ToolbarPlugin() {
             includeHeaders: true,
           });
         }}
-        className="toolbar-item"
-        aria-label="Justify Align"
       >
         <TableCellsIcon className="size-6" />
-      </button>
+      </ToolButton>
+      <ToolButton
+        aria-label="Left Align"
+        onClick={() => {
+          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "left");
+        }}
+      >
+        <Bars3BottomLeftIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
+        aria-label="Center Align"
+        onClick={() => {
+          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "center");
+        }}
+      >
+        <Bars3CenterLeftIcon className="size-5" />
+      </ToolButton>
+      <ToolButton
+        aria-label="Right Align"
+        onClick={() => {
+          editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, "right");
+        }}
+      >
+        <Bars3BottomRightIcon className="size-5" />
+      </ToolButton>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
   MULTILINE_ELEMENT_TRANSFORMERS,
   TEXT_FORMAT_TRANSFORMERS,
   TEXT_MATCH_TRANSFORMERS,
+  TextFormatTransformer,
   TextMatchTransformer,
   Transformer,
 } from "@lexical/markdown";
@@ -35,14 +36,20 @@ import {
   TableNode,
   TableRowNode,
 } from "@lexical/table";
-import { $isParagraphNode, $isTextNode, LexicalNode } from "lexical";
+import {
+  $createTextNode,
+  $isParagraphNode,
+  $isTextNode,
+  LexicalNode,
+  TextNode,
+} from "lexical";
 
 import { $createImageNode, $isImageNode, ImageNode } from "../nodes/ImageNode";
 
 export const HR: ElementTransformer = {
   dependencies: [HorizontalRuleNode],
   export: (node: LexicalNode) => {
-    return $isHorizontalRuleNode(node) ? "***" : null;
+    return $isHorizontalRuleNode(node) ? "---" : null;
   },
   regExp: /^(---|\*\*\*|___)\s?$/,
   replace: (parentNode, _1, _2, isImport) => {
@@ -243,6 +250,12 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
   return match[1].split("|").map((text) => $createTableCell(text));
 };
 
+export const Underline: TextFormatTransformer = {
+  format: ["underline"],
+  tag: "_",
+  type: "text-format",
+};
+
 export const CUSTOM_TRANSFORMERS: Array<Transformer> = [
   TABLE,
   HR,
@@ -252,4 +265,5 @@ export const CUSTOM_TRANSFORMERS: Array<Transformer> = [
   ...MULTILINE_ELEMENT_TRANSFORMERS,
   ...TEXT_FORMAT_TRANSFORMERS,
   ...TEXT_MATCH_TRANSFORMERS,
+  Underline,
 ];

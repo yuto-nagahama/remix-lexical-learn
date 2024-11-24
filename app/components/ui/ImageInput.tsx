@@ -6,7 +6,7 @@ type Props = {
 
 export default function ImageInput({ onChange }: Props) {
   return (
-    <label className="btn btn-sm">
+    <label className="btn btn-sm rounded-none">
       <input
         type="file"
         accept="image/*"
