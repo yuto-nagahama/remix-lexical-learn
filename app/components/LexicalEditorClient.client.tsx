@@ -6,6 +6,8 @@
  *
  */
 
+import "./editor.css";
+
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
@@ -39,11 +41,13 @@ import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 import { CUSTOM_TRANSFORMERS } from "./transformer/transformer";
 import CustomAutoLinkPlugin from "./plugins/CustomAutoLinkPlugin.client";
 import { ImageNode } from "./nodes/ImageNode";
-
-import "./editor.css";
 import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
 import DraggableBlockPlugin from "./plugins/DraggableBlockPlugin";
 import { useState } from "react";
+import CollapsiblePlugin from "./plugins/CollapsiblePlugin";
+import { CollapsibleContentNode } from "./plugins/CollapsiblePlugin/CollapsibleContentNode";
+import { CollapsibleContainerNode } from "./plugins/CollapsiblePlugin/CollapsibleContainerNode";
+import { CollapsibleTitleNode } from "./plugins/CollapsiblePlugin/CollapsibleTitleNode";
 
 const placeholder = "Enter some rich text...";
 
@@ -210,6 +214,9 @@ https://www.example.com
     TableRowNode,
     AutoLinkNode,
     ImageNode,
+    CollapsibleContainerNode,
+    CollapsibleContentNode,
+    CollapsibleTitleNode,
   ],
   onError(error: Error) {
     throw error;
@@ -254,6 +261,7 @@ export default function LexicalEditorClient() {
         <TabIndentationPlugin />
         <HorizontalRulePlugin />
         <ListPlugin />
+        <CollapsiblePlugin />
         {floatingAnchorElem && (
           <DraggableBlockPlugin anchorElem={floatingAnchorElem} />
         )}

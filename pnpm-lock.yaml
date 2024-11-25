@@ -12,28 +12,28 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(react@18.3.1)
       '@lexical/code':
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0
       '@lexical/html':
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0
       '@lexical/link':
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0
       '@lexical/list':
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0
       '@lexical/markdown':
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0
       '@lexical/react':
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(yjs@13.6.20)
       '@lexical/rich-text':
-        specifier: ^0.20.0
+        specifier: '0.20'
         version: 0.20.0
       '@lexical/table':
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0
       '@lexical/utils':
         specifier: ^0.20.0
@@ -57,7 +57,7 @@ importers:
         specifier: ^4.1.0
         version: 4.4.0
       lexical:
-        specifier: ^0.20.0
+        specifier: 0.20.0
         version: 0.20.0
       react:
         specifier: ^18.2.0
